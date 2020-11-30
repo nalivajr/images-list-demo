@@ -10,19 +10,19 @@ class UiResultTest {
     fun success() {
         val data = "OK"
         val target = UiResult.success(data)
-        runTest(target, true, false)
+        runTest(target, expectSuccess = true, expectFail = false)
     }
 
     @Test
     fun failedWithMessage() {
         val target = UiResult.error<String>("error occurred")
-        runTest(target, false, true)
+        runTest(target, expectSuccess = false, expectFail = true)
     }
 
     @Test
     fun failedWithException() {
         val target = UiResult.error<String>(RuntimeException())
-        runTest(target, false, true)
+        runTest(target, expectSuccess = false, expectFail = true)
     }
 
     private fun runTest(uiResult: UiResult<*>, expectSuccess: Boolean, expectFail: Boolean) {

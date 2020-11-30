@@ -21,7 +21,7 @@ class ImagesRepositoryImpl(
             .setEnablePlaceholders(false)
             .setPageSize(ImagesRepository.PAGE_SIZE)
             .setPrefetchDistance(2 * ImagesRepository.PRELOAD_COUNT)
-            .setInitialLoadSizeHint(ImagesRepository.PRELOAD_COUNT)
+            .setInitialLoadSizeHint(2 * ImagesRepository.PRELOAD_COUNT)
             .build()
 
         val pagedListData = LivePagedListBuilder(dataSourceFactory, pagedListConfig).build()

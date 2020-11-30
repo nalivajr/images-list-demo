@@ -43,7 +43,7 @@ class ImagesDataSource(
     }
 
     override fun loadBefore(params: LoadParams<Int>, callback: LoadCallback<ImageInfo>) {
-        loadImages(params.requestedLoadSize, callback)
+        callback.onResult(emptyList())
     }
 
     fun addLoadingStateListener(listener: LoadingStateListener) {
