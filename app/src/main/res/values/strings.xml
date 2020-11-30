@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">ImageListDemo</string>
+    <string name="add_image">Add Image</string>
+    <string name="reload">Reload</string>
+    <string name="not_supported_for_infinete">Not supported for infinite pagind demo</string>
+    <string name="continues_list">Continues list</string>
+    <string name="fixed_size_demo">Fixed demo</string>
+    <string name="error_unexpected_try_again">Sorry, an error occurred. Please try again</string>
+    <string name="error_no_network">Connection error. Please try again</string>
+</resources>
