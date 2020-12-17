@@ -5,25 +5,20 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import by.nalivajr.imagelistdemo.R
 import by.nalivajr.imagelistdemo.databinding.ActivityImagesCollectionBinding
-import by.nalivajr.imagelistdemo.ui.tools.ItemDecoration
-import by.nalivajr.imagelistdemo.ui.viewmodel.BaseImagesListViewModel
+import by.nalivajr.imagelistdemo.domain.model.ImagesPage
+import by.nalivajr.imagelistdemo.ui.adapter.ImagesPageAdapter
+import by.nalivajr.imagelistdemo.ui.viewmodel.ImagesListViewModel
+import org.koin.android.viewmodel.ext.android.viewModel
 
-abstract class BaseImagesCollectionActivity<T> : AppCompatActivity() {
+class ImagesPagesActivity : AppCompatActivity() {
 
-    protected lateinit var binding: ActivityImagesCollectionBinding
+    private lateinit var binding: ActivityImagesCollectionBinding
 
-    protected abstract val imagesAdapter: RecyclerView.Adapter<*>
-    protected abstract val viewModel: BaseImagesListViewModel<T>
-
-    protected abstract fun onReload()
-
-    protected abstract fun onAddImage()
-
-    protected abstract fun onDataLoaded(data: T?)
+    private val pagesAdapter: ImagesPageAdapter by lazy { ImagesPageAdapter(supportFragmentManager) }
+    private val viewModel: ImagesListViewModel by viewModel()
+    private var scrollNextPage: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,9 +30,12 @@ abstract class BaseImagesCollectionActivity<T> : AppCompatActivity() {
 
         observeData()
 
-        if (savedInstanceState == null) {
-            onReload()
-        }
+        viewModel.onCreate(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        viewModel.onSaveState(outState)
     }
 
     private fun initSwipeLayout() {
@@ -45,10 +43,8 @@ abstract class BaseImagesCollectionActivity<T> : AppCompatActivity() {
     }
 
     private fun initList() {
-        with(binding.imagesList) {
-            layoutManager = GridLayoutManager(this@BaseImagesCollectionActivity, SPAN_COUNT, GridLayoutManager.HORIZONTAL, false)
-            adapter = imagesAdapter
-            addItemDecoration(ItemDecoration(this@BaseImagesCollectionActivity))
+        with(binding.imagesPages) {
+            adapter = pagesAdapter
         }
     }
 
@@ -56,13 +52,30 @@ abstract class BaseImagesCollectionActivity<T> : AppCompatActivity() {
         viewModel.imagesList.observe(this) {
             it.onSuccess(::onDataLoaded)
                 .onError { msg, _ ->
-                    Toast.makeText(this@BaseImagesCollectionActivity, msg, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ImagesPagesActivity, msg, Toast.LENGTH_SHORT).show()
                 }
         }
 
         viewModel.loadingState.observe(this) {
             binding.listContainer.isRefreshing = it
         }
+    }
+
+    private fun onDataLoaded(data: List<ImagesPage>?) {
+        val pages = data ?: emptyList()
+        pagesAdapter.pages = pages
+        val openPageIndex = if (scrollNextPage) pages.size else 0
+        binding.imagesPages.post { binding.imagesPages.setCurrentItem(openPageIndex, true) }
+        scrollNextPage = false
+    }
+
+    private fun onReload() {
+        viewModel.reloadImages()
+    }
+
+    private fun onAddImage() {
+        scrollNextPage = true
+        viewModel.addImage()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -82,9 +95,5 @@ abstract class BaseImagesCollectionActivity<T> : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    companion object {
-        const val SPAN_COUNT = 10
     }
 }

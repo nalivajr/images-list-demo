@@ -2,7 +2,6 @@ package by.nalivajr.imagelistdemo.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.ListAdapter
 import by.nalivajr.imagelistdemo.databinding.ItemListImageBinding
 import by.nalivajr.imagelistdemo.domain.model.ImageInfo

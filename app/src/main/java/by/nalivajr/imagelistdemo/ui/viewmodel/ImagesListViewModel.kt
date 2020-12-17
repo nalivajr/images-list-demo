@@ -1,59 +1,70 @@
 package by.nalivajr.imagelistdemo.ui.viewmodel
 
-import androidx.lifecycle.LiveData
+import android.os.Bundle
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import by.nalivajr.imagelistdemo.api.ImagesApiService
 import by.nalivajr.imagelistdemo.domain.errorhandling.ErrorDispatcher
-import by.nalivajr.imagelistdemo.domain.model.ImageInfo
+import by.nalivajr.imagelistdemo.domain.model.ImagesPage
 import by.nalivajr.imagelistdemo.domain.repository.ImagesRepository
 import by.nalivajr.imagelistdemo.ui.model.UiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ImagesListViewModel(
-    private val imagesApiService: ImagesApiService,
+    private val imagesRepository: ImagesRepository,
     private val errorDispatcher: ErrorDispatcher
-) : BaseImagesListViewModel<List<ImageInfo>>() {
+) : ViewModel() {
 
-    private val internalImagesList = MutableLiveData<UiResult<List<ImageInfo>>>()
-    private val internalLoadingState: MutableLiveData<Boolean> = MutableLiveData()
-
-    override val imagesList: LiveData<UiResult<List<ImageInfo>>> = internalImagesList
-    override val loadingState: LiveData<Boolean> = internalLoadingState
-
-    init {
-        internalLoadingState.postValue(true)
-    }
+    val imagesList: MutableLiveData<UiResult<List<ImagesPage>>> = MutableLiveData()
+    val loadingState: MutableLiveData<Boolean> = MutableLiveData()
 
     fun reloadImages() {
         doLoad {
-            imagesApiService.loadImages(ImagesRepository.PRELOAD_COUNT)
+            imagesRepository.reload()
         }
     }
 
     fun addImage() {
         doLoad {
-            val images = imagesApiService.loadImages(1)
-            val newList = mutableListOf<ImageInfo>()
-            newList.addAll(internalImagesList.value?.data ?: emptyList())
-            newList.addAll(images)
-            return@doLoad newList
+            val currentList = getCurrentList()
+            imagesRepository.appendOne(currentList)
         }
     }
 
-    private fun doLoad(loader: () -> List<ImageInfo>) {
-        internalLoadingState.postValue(true)
+    private fun doLoad(loader: () -> List<ImagesPage>) {
+        loadingState.postValue(true)
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 loader.invoke()
             }.onSuccess {
-                internalImagesList.postValue(UiResult.success(it))
+                imagesList.postValue(UiResult.success(it))
             }.onFailure {
-                internalImagesList.postValue(UiResult.error(errorDispatcher.dispatchError(it)))
+                imagesList.postValue(UiResult.error(errorDispatcher.dispatchError(it)))
             }
-            internalLoadingState.postValue(false)
+            loadingState.postValue(false)
         }
     }
 
+    private fun getCurrentList(): List<ImagesPage> {
+        return imagesList.value?.data ?: emptyList()
+    }
+
+    fun onCreate(bundle: Bundle?) {
+        val saved = bundle?.getParcelableArrayList<ImagesPage>(KEY_LOADED_IMAGES)
+        if (saved != null) {
+            imagesList.value = UiResult.success(saved)
+        } else {
+            reloadImages()
+        }
+    }
+
+    fun onSaveState(bundle: Bundle) {
+        val currentList = getCurrentList()
+        bundle.putParcelableArrayList(KEY_LOADED_IMAGES, ArrayList(currentList))
+    }
+
+    companion object {
+        private const val KEY_LOADED_IMAGES = "key_loaded_images"
+    }
 }

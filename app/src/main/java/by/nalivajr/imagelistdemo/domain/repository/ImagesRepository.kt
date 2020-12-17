@@ -1,15 +1,12 @@
 package by.nalivajr.imagelistdemo.domain.repository
 
-import by.nalivajr.imagelistdemo.domain.model.ImageInfo
-import by.nalivajr.imagelistdemo.domain.model.LoadingImagesDataHolder
+import by.nalivajr.imagelistdemo.domain.model.ImagesPage
 
 interface ImagesRepository {
 
-    fun reload()
+    fun reload(): List<ImagesPage>
 
-    fun init(): LoadingImagesDataHolder
-
-    fun loadOne(): ImageInfo
+    fun appendOne(source: List<ImagesPage>): List<ImagesPage>
 
     companion object {
         const val PAGE_SIZE = 70

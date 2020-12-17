@@ -2,7 +2,6 @@ package by.nalivajr.imagelistdemo.di
 
 import by.nalivajr.imagelistdemo.api.ImagesApiService
 import by.nalivajr.imagelistdemo.api.ImagesApiServiceImpl
-import by.nalivajr.imagelistdemo.domain.ImagesDataSourceFactory
 import by.nalivajr.imagelistdemo.domain.errorhandling.ErrorDispatcher
 import by.nalivajr.imagelistdemo.domain.errorhandling.ErrorDispatcherImpl
 import by.nalivajr.imagelistdemo.domain.repository.ImagesRepository
@@ -12,8 +11,6 @@ import org.koin.dsl.module
 val domainModule = module {
 
     single<ImagesApiService> { ImagesApiServiceImpl(get()) }
-
-    single { ImagesDataSourceFactory(get()) }
 
     single<ImagesRepository> { ImagesRepositoryImpl(get()) }
 
